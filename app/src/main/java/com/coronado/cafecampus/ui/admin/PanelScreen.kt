@@ -18,6 +18,7 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Notifications
+import androidx.compose.material.icons.filled.NotificationsNone
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
@@ -40,6 +41,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.coronado.cafecampus.data.local.relation.PedidoPorHora
 import com.coronado.cafecampus.model.EstadoPedido
+import com.coronado.cafecampus.ui.components.EstadoVacio
 import com.coronado.cafecampus.ui.theme.coloresDe
 import com.coronado.cafecampus.ui.theme.esOscuro
 import com.coronado.cafecampus.ui.util.abreviado
@@ -135,7 +137,13 @@ fun PanelScreen(vm: PanelAdminViewModel, onVerPedidos: () -> Unit) {
             }
         }
         if (nuevosPedidos.isEmpty()) {
-            item { Text("No hay pedidos nuevos.", color = MaterialTheme.colorScheme.onSurfaceVariant) }
+            item {
+                EstadoVacio(
+                    icono = Icons.Filled.NotificationsNone,
+                    titulo = "Sin pedidos nuevos",
+                    mensaje = "No hay pedidos pendientes por atender en este momento."
+                )
+            }
         }
         items(nuevosPedidos, key = { it.pedido.id }) { p ->
             Card(
@@ -192,7 +200,7 @@ private fun Contador(titulo: String, valor: Int, estado: EstadoPedido, modifier:
     }
 }
 
-/** Grafico de barras calculado con una consulta Room (de 7 a 20 h). La hora pico resalta. */
+/** Gráfico de barras calculado con una consulta Room (de 7 a 20 h). La hora pico resalta. */
 @Composable
 private fun GraficoPorHora(datos: List<PedidoPorHora>) {
     val horas = (7..20).toList()
