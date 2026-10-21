@@ -171,7 +171,11 @@ fun NavCafe(
                         vm = pedidosClienteVm,
                         onPedido = { nav.navigate(Rutas.seguimiento(it)) },
                         onRepetir = { pedido ->
-                            menuVm.repetir(pedido) { nav.navigate(Rutas.CONFIRMAR) }
+                            menuVm.repetir(pedido) { agregados ->
+                                if (agregados > 0) {
+                                    nav.navigate(Rutas.CONFIRMAR)
+                                }
+                            }
                         }
                     )
                 }

@@ -12,9 +12,11 @@ import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.launch
 
 class MenuViewModel(private val repo: CafeRepository) : ViewModel() {
 
@@ -26,7 +28,7 @@ class MenuViewModel(private val repo: CafeRepository) : ViewModel() {
         .map { lista -> Categorias.ordenar(lista.map { it.categoria }.distinct()) }
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
 
-    // ---------- Fase 2: busqueda + filtro por categoria (logica en el ViewModel) ----------
+    // ---------- Búsqueda + Filtro por categoría (lógica en el ViewModel) ----------
     private val _busqueda = MutableStateFlow("")
     val busqueda: StateFlow<String> = _busqueda.asStateFlow()
 
@@ -48,7 +50,7 @@ class MenuViewModel(private val repo: CafeRepository) : ViewModel() {
     private val _carrito = MutableStateFlow<List<ItemCarrito>>(emptyList())
     val carrito: StateFlow<List<ItemCarrito>> = _carrito.asStateFlow()
 
-    /** Si el producto ya esta en el carrito, suma la cantidad en vez de duplicar la linea. */
+    /** Si el producto ya está en el carrito, suma la cantidad en vez de duplicar la línea. */
     fun agregar(producto: Producto, cantidad: Int, nota: String = "") {
         if (!producto.disponible || cantidad < 1) return
         _carrito.update { lista ->
@@ -68,22 +70,23 @@ class MenuViewModel(private val repo: CafeRepository) : ViewModel() {
         }
     }
 
-    fun repetir(pedido: PedidoConDetalle, onListo: () -> Unit) {
-        val listaProductos = productos.value
-        _carrito.value = pedido.detalles.map { d ->
-            val p = listaProductos.firstOrNull { it.id == d.productoId }
-                ?: Producto(
-                    id = d.productoId,
-                    nombre = d.nombreProducto,
-                    descripcion = "",
-                    categoria = "",
-                    precio = d.precioUnitario,
-                    disponible = true,
-                    icono = "cafeteria"
-                )
-            ItemCarrito(p, d.cantidad, "")
+    /**
+     * Vuelve a cargar al carrito los productos del pedido si aún existen y están disponibles.
+     * Retorna cuántos productos válidos fueron agregados al carrito.
+     */
+    fun repetir(pedido: PedidoConDetalle, onListo: (Int) -> Unit) {
+        viewModelScope.launch {
+            val listaActual = repo.observarProductos().first()
+            var agregados = 0
+            for (detalle in pedido.detalles) {
+                val prod = listaActual.firstOrNull { it.id == detalle.productoId }
+                if (prod != null && prod.disponible) {
+                    agregar(prod, detalle.cantidad)
+                    agregados++
+                }
+            }
+            onListo(agregados)
         }
-        onListo()
     }
 
     fun quitar(productoId: Int) {
