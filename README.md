@@ -1,3 +1,32 @@
+
+ARBOL DE PAQUETES
+
+com.tecsup.cafecampus
+├── MainActivity.kt
+├── CafeApp.kt                  (crea base, repository y siembra datos)
+├── data
+│   ├── local
+│   │   ├── entity   Producto · Usuario · Pedido · DetallePedido
+│   │   ├── dao      ProductoDao · UsuarioDao · PedidoDao
+│   │   ├── relation PedidoConDetalle · PedidoPorHora
+│   │   ├── CafeDatabase.kt · DatosIniciales.kt
+│   ├── repository   CafeRepository (interface) · CafeRepositoryRoom
+│   └── prefs        PreferenciasStore (DataStore)
+├── model            Rol · EstadoPedido · ItemCarrito
+├── viewmodel        Sesion · Menu · PedidosCliente · PanelAdmin · PedidosAdmin · MenuAdmin · Factory
+└── ui
+    ├── theme · components · navigation · util
+    ├── cliente      Splash · Login · Menu · DetalleProducto · ConfirmarPedido · Seguimiento · MisPedidos · Perfil
+    └── admin        Panel · PedidosAdmin · DetallePedidoAdmin · MenuAdmin · FormularioProducto · Ajustes
+
+<img width="702" height="1600" alt="6" src="https://github.com/user-attachments/assets/f869661f-7b97-4633-9185-567db9e0bff7" />
+<img width="702" height="1600" alt="5" src="https://github.com/user-attachments/assets/7fb207a4-0815-45b3-9d16-e7824fd90a39" />
+<img width="702" height="1600" alt="4" src="https://github.com/user-attachments/assets/ab6e7d59-1d92-4411-bfa0-ea15e69ed8bb" />
+<img width="702" height="1600" alt="3" src="https://github.com/user-attachments/assets/810cef0e-92b6-4b2b-b2b9-7522f3b6c06e" />
+<img width="702" height="1600" alt="2" src="https://github.com/user-attachments/assets/2506986c-906c-48f9-9d9b-208f39a2dc41" />
+<img width="702" height="1600" alt="WhatsApp Image 2026-10-21 at 4 08 19 AM" src="https://github.com/user-attachments/assets/47d0023d-06c7-4b2e-a46c-39869c843dde" />
+
+
 # Prompts utilizados
 ## Prompt 1 — Buscar en el menú
 **Commit:** `ia: agrega busqueda de productos en el menu`
@@ -126,4 +155,8 @@ DAOs ni la base de datos. Las pantallas no deben usar DAO ni Repository. Usa sol
 MaterialTheme.colorScheme (sin colores fijos), sin XML ni librerías externas de animación
 o de imágenes: solo androidx.compose.animation. Muéstrame solo los archivos que cambian,
 completos.
-```
+
+¿Por qué el Repository es una interface? Para que los ViewModels dependan de un contrato y no de Room; así se puede cambiar la fuente de datos (servidor, nube) sin tocarlos.
+¿Por qué crearPedido es suspend y observarPedidosCliente es Flow? Crear es una acción única que termina; observar debe avisar a la pantalla cada vez que los datos cambian.
+¿Y si dos perfiles usaran bases distintas? Cada uno vería datos diferentes: el estudiante nunca vería el cambio de estado hecho por el administrador.
+¿Qué cambiaría si los datos viven en un servidor? Solo una nueva implementación del Repository (p. ej. CafeRepositoryRemoto); ViewModels y pantallas quedan igual.
