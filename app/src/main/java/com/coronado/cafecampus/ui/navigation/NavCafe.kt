@@ -7,20 +7,18 @@ import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.LocalCafe
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.Receipt
-import androidx.compose.material.icons.filled.Restaurant
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.NavigationBarItemDefaults
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
@@ -44,6 +42,7 @@ import com.coronado.cafecampus.ui.cliente.LoginScreen
 import com.coronado.cafecampus.ui.cliente.MenuScreen
 import com.coronado.cafecampus.ui.cliente.MisPedidosScreen
 import com.coronado.cafecampus.ui.cliente.PerfilScreen
+import com.coronado.cafecampus.ui.cliente.RegistroScreen
 import com.coronado.cafecampus.ui.cliente.SeguimientoScreen
 import com.coronado.cafecampus.ui.cliente.SplashScreen
 import com.coronado.cafecampus.viewmodel.MenuAdminViewModel
@@ -84,7 +83,7 @@ fun NavCafe(
     val usuario by sesionVm.usuarioActual.collectAsState()
     val cafeteriaAbierta by sesionVm.recibirPedidos.collectAsState()
 
-    // El ViewModel del cliente necesita saber quien es el estudiante activo
+    // El ViewModel del cliente necesita saber quién es el estudiante activo
     LaunchedEffect(usuario) {
         val u = usuario
         if (u != null && u.rol == Rol.CLIENTE.name) pedidosClienteVm.establecerCliente(u.id)
@@ -93,7 +92,7 @@ fun NavCafe(
     val esTabCliente = TABS_CLIENTE.any { it.ruta == ruta } || ruta == Rutas.SEGUIMIENTO
     val esTabAdmin = TABS_ADMIN.any { it.ruta == ruta }
 
-    /** Navega al grafo del perfil y limpia la pila de navegacion. */
+    /** Navega al grafo del perfil y limpia la pila de navegación. */
     val irAlPerfil: (Rol?) -> Unit = { rol ->
         val destino = when (rol) {
             Rol.CLIENTE -> Rutas.GRAFO_CLIENTE
@@ -152,7 +151,18 @@ fun NavCafe(
                 SplashScreen(sesionVm) { rol -> irAlPerfil(rol) }
             }
             composable(Rutas.LOGIN) {
-                LoginScreen(sesionVm) { rol -> irAlPerfil(rol) }
+                LoginScreen(
+                    vm = sesionVm,
+                    onRegistro = { nav.navigate(Rutas.REGISTRO) },
+                    onExito = { rol -> irAlPerfil(rol) }
+                )
+            }
+            composable(Rutas.REGISTRO) {
+                RegistroScreen(
+                    vm = sesionVm,
+                    onBack = { nav.popBackStack() },
+                    onExito = { rol -> irAlPerfil(rol) }
+                )
             }
 
             // ================= PERFIL CLIENTE =================

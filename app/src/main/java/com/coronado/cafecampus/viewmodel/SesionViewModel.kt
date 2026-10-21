@@ -6,11 +6,11 @@ import com.coronado.cafecampus.data.local.entity.Usuario
 import com.coronado.cafecampus.data.prefs.PreferenciasStore
 import com.coronado.cafecampus.data.repository.CafeRepository
 import com.coronado.cafecampus.model.Rol
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flowOf
@@ -27,6 +27,9 @@ class SesionViewModel(
 
     private val _error = MutableStateFlow<String?>(null)
     val error: StateFlow<String?> = _error.asStateFlow()
+
+    private val _errorRegistro = MutableStateFlow<String?>(null)
+    val errorRegistro: StateFlow<String?> = _errorRegistro.asStateFlow()
 
     val modoOscuro: StateFlow<Boolean> = prefs.modoOscuro
         .stateIn(viewModelScope, SharingStarted.Eagerly, false)
@@ -53,6 +56,8 @@ class SesionViewModel(
     }
 
     fun limpiarError() { _error.value = null }
+
+    fun limpiarErrorRegistro() { _errorRegistro.value = null }
 
     /** Splash: si ya hay perfil guardado, carga su usuario y devuelve el rol (o null). */
     suspend fun restaurarSesion(): Rol? {
@@ -83,7 +88,44 @@ class SesionViewModel(
         }
     }
 
-    /** Modo practica: guarda el otro perfil y entrega su rol para navegar a su grafo. */
+    fun registrar(
+        nombre: String,
+        correo: String,
+        clave: String,
+        confirmacion: String,
+        onExito: (Rol) -> Unit
+    ) {
+        if (nombre.isBlank() || correo.isBlank() || clave.isBlank() || confirmacion.isBlank()) {
+            _errorRegistro.value = "Completa todos los campos"
+            return
+        }
+        if (!android.util.Patterns.EMAIL_ADDRESS.matcher(correo.trim()).matches()) {
+            _errorRegistro.value = "Correo no válido"
+            return
+        }
+        if (clave.length < 4) {
+            _errorRegistro.value = "La contraseña debe tener al menos 4 caracteres"
+            return
+        }
+        if (clave != confirmacion) {
+            _errorRegistro.value = "Las contraseñas no coinciden"
+            return
+        }
+
+        viewModelScope.launch {
+            val usuario = repo.registrarEstudiante(nombre, correo, clave)
+            if (usuario == null) {
+                _errorRegistro.value = "Ese correo ya está registrado"
+            } else {
+                prefs.guardarPerfil(Rol.CLIENTE)
+                _usuarioActual.value = usuario
+                _errorRegistro.value = null
+                onExito(Rol.CLIENTE)
+            }
+        }
+    }
+
+    /** Modo práctica: guarda el otro perfil y entrega su rol para navegar a su grafo. */
     fun cambiarPerfil(onListo: (Rol) -> Unit) {
         viewModelScope.launch {
             val actual = Rol.desde(_usuarioActual.value?.rol) ?: Rol.CLIENTE
@@ -100,6 +142,7 @@ class SesionViewModel(
             prefs.cerrarSesion()
             _usuarioActual.value = null
             _error.value = null
+            _errorRegistro.value = null
             onListo()
         }
     }

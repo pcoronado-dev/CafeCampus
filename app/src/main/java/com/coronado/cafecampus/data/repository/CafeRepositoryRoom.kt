@@ -25,6 +25,18 @@ class CafeRepositoryRoom(db: CafeDatabase) : CafeRepository {
     override suspend fun usuarioPorRol(rol: Rol): Usuario? =
         usuarioDao.primeroPorRol(rol.name)
 
+    override suspend fun registrarEstudiante(nombre: String, correo: String, clave: String): Usuario? {
+        if (usuarioDao.contarPorCorreo(correo) > 0) return null
+        val nuevoUsuario = Usuario(
+            nombre = nombre.trim(),
+            correo = correo.trim().lowercase(),
+            clave = clave,
+            rol = Rol.CLIENTE.name
+        )
+        val id = usuarioDao.insertar(nuevoUsuario)
+        return nuevoUsuario.copy(id = id.toInt())
+    }
+
     // ---------- Productos ----------
     override fun observarProductos(): Flow<List<Producto>> = productoDao.observarTodos()
 

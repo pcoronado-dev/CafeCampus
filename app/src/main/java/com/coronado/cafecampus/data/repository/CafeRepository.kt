@@ -14,6 +14,7 @@ interface CafeRepository {
     // Usuarios
     suspend fun login(correo: String, clave: String): Usuario?
     suspend fun usuarioPorRol(rol: Rol): Usuario?
+    suspend fun registrarEstudiante(nombre: String, correo: String, clave: String): Usuario?
 
     // Productos (ejemplo resuelto)
     fun observarProductos(): Flow<List<Producto>>

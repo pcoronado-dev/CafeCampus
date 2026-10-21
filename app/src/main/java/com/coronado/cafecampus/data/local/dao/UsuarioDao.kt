@@ -17,7 +17,10 @@ interface UsuarioDao {
     @Query("SELECT COUNT(*) FROM usuarios")
     suspend fun contar(): Int
 
-    /** Modo practica: permite cambiar de perfil sin volver a loguearse. */
+    /** Modo práctica: permite cambiar de perfil sin volver a loguearse. */
     @Query("SELECT * FROM usuarios WHERE rol = :rol ORDER BY id LIMIT 1")
     suspend fun primeroPorRol(rol: String): Usuario?
+
+    @Query("SELECT COUNT(*) FROM usuarios WHERE LOWER(correo) = LOWER(:correo)")
+    suspend fun contarPorCorreo(correo: String): Int
 }

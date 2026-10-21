@@ -46,7 +46,11 @@ import com.coronado.cafecampus.viewmodel.SesionViewModel
 
 /** Un solo Composable para ambos roles: el selector cambia los colores del tema. */
 @Composable
-fun LoginScreen(vm: SesionViewModel, onExito: (Rol) -> Unit) {
+fun LoginScreen(
+    vm: SesionViewModel,
+    onRegistro: () -> Unit,
+    onExito: (Rol) -> Unit
+) {
     val oscuro by vm.modoOscuro.collectAsState()
     val error by vm.error.collectAsState()
     val contexto = LocalContext.current
@@ -123,7 +127,7 @@ fun LoginScreen(vm: SesionViewModel, onExito: (Rol) -> Unit) {
                 Spacer(Modifier.height(12.dp))
 
                 if (rol == Rol.CLIENTE) {
-                    TextButton(onClick = { proximamente() }, modifier = Modifier.align(Alignment.CenterHorizontally)) {
+                    TextButton(onClick = onRegistro, modifier = Modifier.align(Alignment.CenterHorizontally)) {
                         Text("¿No tienes cuenta? Regístrate")
                     }
                 } else {
