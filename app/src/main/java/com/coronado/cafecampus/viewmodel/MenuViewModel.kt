@@ -12,11 +12,9 @@ import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
-import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
-import kotlinx.coroutines.launch
 
 class MenuViewModel(private val repo: CafeRepository) : ViewModel() {
 
@@ -68,6 +66,24 @@ class MenuViewModel(private val repo: CafeRepository) : ViewModel() {
                 }
             }
         }
+    }
+
+    fun repetir(pedido: PedidoConDetalle, onListo: () -> Unit) {
+        val listaProductos = productos.value
+        _carrito.value = pedido.detalles.map { d ->
+            val p = listaProductos.firstOrNull { it.id == d.productoId }
+                ?: Producto(
+                    id = d.productoId,
+                    nombre = d.nombreProducto,
+                    descripcion = "",
+                    categoria = "",
+                    precio = d.precioUnitario,
+                    disponible = true,
+                    icono = "cafeteria"
+                )
+            ItemCarrito(p, d.cantidad, "")
+        }
+        onListo()
     }
 
     fun quitar(productoId: Int) {

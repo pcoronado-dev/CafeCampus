@@ -24,5 +24,6 @@ data class Pedido(
     val pago: String, // CAJA | YAPE
     val nota: String = "",
     val total: Double,
+    val estado: String = "RECIBIDO",
     val fecha: Long = System.currentTimeMillis()
 )
